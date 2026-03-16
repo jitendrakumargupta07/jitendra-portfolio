@@ -2380,6 +2380,8 @@ function animCirc(id,pct,dur=1800){
 
 const LC_USER  = 'jitendrakrgupta05936';
 const GH_USER  = 'jitendrakumargupta07';
+/* Fallback values — shown ONLY if ALL live APIs fail simultaneously */
+const LC_FALLBACK = { easy:190, med:270, hard:75, total:535, rank:null };
 const HR_USER  = 'jitendrakrgupta1';
 const CACHE_MS = 5 * 60 * 1000;   // 5 min cache
 const POLL_MS  = 5 * 60 * 1000;   // poll every 5 min
@@ -2493,87 +2495,110 @@ new IntersectionObserver(entries=>{
    simultaneously via Promise.race, winner used first
 ══════════════════════════════════════════════════════ */
 async function fetchLC(){
-  // Always bypass cache on manual refresh (called from refreshAllStats)
+  // Use fresh cache if available
   const cached = cache.get('lc', CACHE_MS);
-  if(cached){ applyLC(cached, false); return; }
+  if(cached){ applyLC(cached, false); setLCStatus('live'); return; }
 
   setLCStatus('fetching');
 
-  /* ── Try APIs in order of reliability ── */
-  async function tryAPI(url, parse, ms=6000){
-    try{
-      const r = await ft(url, {}, ms);
+  // Helper: fetch one API safely, return parsed result or null
+  const tryOne = async (url, parse, ms=5000, opts={}) => {
+    try {
+      const r = await fetch(url, { ...opts, signal: AbortSignal.timeout(ms) });
       if(!r.ok) return null;
       const d = await r.json();
-      return parse(d);
-    }catch(e){ return null; }
-  }
+      const result = parse(d);
+      if(!result || result.total <= 0) return null;
+      return result;
+    } catch(e) { return null; }
+  };
 
-  // ① alfa-leetcode-api — most accurate, fetches directly from LC
-  let result = await tryAPI(
-    `https://alfa-leetcode-api.onrender.com/${LC_USER}/solved`,
-    d => {
-      const e=d.easySolved||0, m=d.mediumSolved||0, h=d.hardSolved||0;
-      if(!e&&!m&&!h) return null;
-      return {easy:e, med:m, hard:h, total:e+m+h};
-    }, 7000
-  );
+  // Fire ALL 4 APIs simultaneously — Promise.any picks the FIRST success
+  // This is the fastest possible approach: no sequential waiting
+  const result = await Promise.any([
 
-  // ② leetcode-stats-api — reliable heroku mirror
-  if(!result) result = await tryAPI(
-    `https://leetcode-stats-api.herokuapp.com/${LC_USER}`,
-    d => {
-      if(d.status==='error'||!d.totalSolved) return null;
-      return {easy:d.easySolved||0, med:d.mediumSolved||0, hard:d.hardSolved||0,
-              total:d.totalSolved||0, rank:d.ranking||null};
-    }, 6000
-  );
+    // ① tashif.codes — actively maintained 2025, CORS-free, fast
+    tryOne(
+      `https://leetcode-stats.tashif.codes/${LC_USER}`,
+      d => {
+        const t = d.totalSolved || 0;
+        if(!t) return null;
+        return { easy: d.easySolved||0, med: d.mediumSolved||0,
+                 hard: d.hardSolved||0, total: t,
+                 rank: d.ranking||null, accept: d.acceptanceRate||null };
+      }, 5000
+    ),
 
-  // ③ leetcode-query vercel — CDN-backed
-  if(!result) result = await tryAPI(
-    `https://leetcode-query.vercel.app/api/user/${LC_USER}`,
-    d => {
-      const total = d.totalSolved||d.total_solved||0;
-      if(!total) return null;
-      return {
-        easy:  d.easySolved||d.easy_solved||0,
-        med:   d.mediumSolved||d.medium_solved||0,
-        hard:  d.hardSolved||d.hard_solved||0,
-        total, rank: d.ranking||null
-      };
-    }, 6000
-  );
+    // ② leetcode-stats-api — battle-tested REST, reliable
+    tryOne(
+      `https://leetcode-stats-api.herokuapp.com/${LC_USER}`,
+      d => {
+        if(d.status === 'error' || !d.totalSolved) return null;
+        return { easy: d.easySolved||0, med: d.mediumSolved||0,
+                 hard: d.hardSolved||0, total: d.totalSolved||0,
+                 rank: d.ranking||null, accept: d.acceptanceRate||null };
+      }, 5000
+    ),
 
-  // ④ LeetCode GraphQL via corsproxy
-  if(!result){
-    try{
-      const gql = `{matchedUser(username:"${LC_USER}"){profile{ranking}submitStats{acSubmissionNum{difficulty count}}}}`;
-      const r = await ft(
-        `https://corsproxy.io/?${encodeURIComponent('https://leetcode.com/graphql')}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:gql})}, 7000
-      );
-      if(r.ok){
-        const d = await r.json();
-        const sub = d?.data?.matchedUser?.submitStats?.acSubmissionNum||[];
-        const easy=sub.find(x=>x.difficulty==='Easy')?.count||0;
-        const med =sub.find(x=>x.difficulty==='Medium')?.count||0;
-        const hard=sub.find(x=>x.difficulty==='Hard')?.count||0;
-        if(easy||med||hard) result={easy,med,hard,total:easy+med+hard,rank:d?.data?.matchedUser?.profile?.ranking||null};
+    // ③ leetcode-query vercel — CDN-backed, fast cold start
+    tryOne(
+      `https://leetcode-query.vercel.app/api/user/${LC_USER}`,
+      d => {
+        const t = d.totalSolved || d.total_solved || 0;
+        if(!t) return null;
+        return { easy: d.easySolved||d.easy_solved||0,
+                 med:  d.mediumSolved||d.medium_solved||0,
+                 hard: d.hardSolved||d.hard_solved||0,
+                 total: t, rank: d.ranking||null };
+      }, 5000
+    ),
+
+    // ④ LeetCode GraphQL directly via corsproxy.io — most accurate, direct source
+    tryOne(
+      `https://corsproxy.io/?${encodeURIComponent('https://leetcode.com/graphql')}`,
+      d => {
+        const sub = d?.data?.matchedUser?.submitStats?.acSubmissionNum || [];
+        const e = sub.find(x=>x.difficulty==='Easy')?.count  || 0;
+        const m = sub.find(x=>x.difficulty==='Medium')?.count || 0;
+        const h = sub.find(x=>x.difficulty==='Hard')?.count  || 0;
+        const t = e + m + h;
+        if(!t) return null;
+        return { easy:e, med:m, hard:h, total:t,
+                 rank: d?.data?.matchedUser?.profile?.ranking||null };
+      }, 7000,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: `{matchedUser(username:"${LC_USER}"){profile{ranking}submitStats{acSubmissionNum{difficulty count}}}}`
+        })
       }
-    }catch(e){}
-  }
+    ),
 
-  if(result && result.total>0){
+    // ⑤ alfa-leetcode-api — comprehensive, accurate (slow cold start fallback)
+    tryOne(
+      `https://alfa-leetcode-api.onrender.com/${LC_USER}/solved`,
+      d => {
+        const e=d.easySolved||0, m=d.mediumSolved||0, h=d.hardSolved||0;
+        if(!e && !m && !h) return null;
+        return { easy:e, med:m, hard:h, total:e+m+h };
+      }, 10000
+    )
+
+  ]).catch(() => null); // Promise.any throws AggregateError if ALL fail — catch it
+
+  if(result){
     cache.set('lc', result);
     applyLC(result, true);
     setLCStatus('live');
   } else {
-    // Show last cached even if expired, rather than hardcoded numbers
+    // All 5 APIs failed — show stale cache, else known fallback (never zeros)
     const stale = cache.get('lc', Infinity);
-    if(stale){ applyLC(stale, false); setLCStatus('cached'); }
-    else { applyLC({easy:0,med:0,hard:0,total:0,rank:null}, false); setLCStatus('cached'); }
+    applyLC(stale || LC_FALLBACK, false);
+    setLCStatus('cached');
   }
 }
+
 
 function setLCStatus(s){
   const el=document.getElementById('lcStatus'); if(!el) return;
