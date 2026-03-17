@@ -105,12 +105,20 @@ body.clicking #cur-ring{width:30px;height:30px}
 .stitle{font-size:clamp(1.9rem,3.5vw,2.9rem);font-weight:800;letter-spacing:-1.5px;line-height:1.05;margin-bottom:44px}
 .stitle .ghost{color:transparent;-webkit-text-stroke:1px rgba(226,232,240,.15)}
 
-/* ═══ REVEAL ═══ */
-.rv{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
-.rvl{opacity:0;transform:translateX(-40px);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
-.rvr{opacity:0;transform:translateX(40px);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
-.rvs{opacity:0;transform:scale(.92);transition:opacity .8s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.4,0,.2,1)}
-.on{opacity:1!important;transform:none!important}
+/* ═══ REVEAL — section-wise ═══ */
+.rv,.rvl,.rvr,.rvs{opacity:1;transform:none} /* reset element-level classes — sections handle it now */
+.sec-rv{
+  opacity:0;
+  transform:translateY(48px);
+  transition:opacity 1s cubic-bezier(.16,1,.3,1), transform 1s cubic-bezier(.16,1,.3,1);
+}
+.sec-rv.on{opacity:1;transform:none}
+/* Hero is above the fold — never hide it */
+#hero.sec-rv{opacity:1;transform:none}
+/* Respect reduced-motion */
+@media(prefers-reduced-motion:reduce){
+  .sec-rv{transform:none;transition:opacity .5s ease}
+}
 
 /* ═══ HERO ═══ */
 #hero{
@@ -319,24 +327,150 @@ body.clicking #cur-ring{width:30px;height:30px}
 .eb-name{font-size:.8rem;font-weight:700;display:flex;align-items:center;gap:8px}
 .eb-val{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--sky)}
 .eb-track{height:5px;background:var(--b1);border-radius:3px;overflow:hidden}
-.eb-fill{height:100%;border-radius:3px;width:0;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+.eb-fill{height:100%;border-radius:3px;width:0}
+.eb1{background:linear-gradient(90deg,var(--sky),var(--indigo))}
+.eb2{background:linear-gradient(90deg,var(--emerald),var(--sky))}
+.eb3{background:linear-gradient(90deg,var(--violet),var(--indigo))}
+.eb4{background:linear-gradient(90deg,var(--amber),var(--orange))}
+@keyframes fillBar{from{width:0}to{width:var(--tw)}}
+.eb-fill.run{animation:fillBar 1.6s cubic-bezier(.25,.46,.45,.94) forwards}
 /* about text */
 .about-body p{max-width:550px; margin-bottom:20px; font-size:.95rem;color:var(--muted2);line-height:1.85;margin-bottom:16px; text-align:justify}
 .about-body p strong{color:var(--text)}
-.skill-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:24px}
-.skill-cat{background:var(--card);border:1px solid var(--b1);border-radius:16px;padding:18px}
-.skill-cat-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--sky);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.skill-cat-title svg{width:13px;height:13px}
-.skill-tags{display:flex;flex-wrap:wrap;gap:6px}
-.stg{
-  padding:5px 12px;border:1px solid var(--b1);border-radius:50px;
-  font-size:.7rem;font-weight:600;color:var(--muted2);
-  transition:all .2s;position:relative;overflow:hidden;cursor:default
+/* ── FLIP CARDS ── */
+.skill-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+
+.skill-cat{
+  width:100%;
+  height:160px;
+  cursor:pointer;
+  perspective:900px;
 }
-.stg::before{content:'';position:absolute;inset:0;background:var(--g1);opacity:0;transition:opacity .2s}
-.stg:hover{color:var(--white);border-color:transparent}
-.stg:hover::before{opacity:1}
+.skill-cat-inner{
+  position:relative;
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+}
+.skill-face{
+  position:absolute;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  border-radius:18px;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow:hidden;
+}
+/* FRONT */
+.skill-face-f{
+  background:var(--card);
+  border:1px solid var(--b2);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:16px;
+  box-sizing:border-box;
+  transition:box-shadow .3s,border-color .3s;
+}
+.skill-face-f::after{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:2px;border-radius:18px 18px 0 0;
+}
+.sk-l .skill-face-f::after{background:var(--g1)}
+.sk-l .skill-face-f{border-color:rgba(56,189,248,.5);box-shadow:0 0 0 1px rgba(56,189,248,.08),0 0 20px rgba(56,189,248,.08),inset 0 1px 0 rgba(56,189,248,.1)}
+.sk-b .skill-face-f::after{background:var(--g3)}
+.sk-b .skill-face-f{border-color:rgba(52,211,153,.5);box-shadow:0 0 0 1px rgba(52,211,153,.08),0 0 20px rgba(52,211,153,.08),inset 0 1px 0 rgba(52,211,153,.1)}
+.sk-f .skill-face-f::after{background:var(--g2)}
+.sk-f .skill-face-f{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 1px rgba(167,139,250,.08),0 0 20px rgba(167,139,250,.08),inset 0 1px 0 rgba(167,139,250,.1)}
+.sk-t .skill-face-f::after{background:var(--g4)}
+.sk-t .skill-face-f{border-color:rgba(251,191,36,.5);box-shadow:0 0 0 1px rgba(251,191,36,.08),0 0 20px rgba(251,191,36,.08),inset 0 1px 0 rgba(251,191,36,.1)}
+
+.fc-ring{
+  width:54px;height:54px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+  animation:fcBob 3.5s ease-in-out infinite;
+}
+.skill-cat:nth-child(2) .fc-ring{animation-delay:-.9s}
+.skill-cat:nth-child(3) .fc-ring{animation-delay:-1.8s}
+.skill-cat:nth-child(4) .fc-ring{animation-delay:-2.6s}
+@keyframes fcBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.sk-l .fc-ring{background:rgba(56,189,248,.18);border:2px solid rgba(56,189,248,.7);box-shadow:0 0 30px rgba(56,189,248,.45),inset 0 0 16px rgba(56,189,248,.12)}
+.sk-b .fc-ring{background:rgba(52,211,153,.18);border:2px solid rgba(52,211,153,.7);box-shadow:0 0 30px rgba(52,211,153,.45),inset 0 0 16px rgba(52,211,153,.12)}
+.sk-f .fc-ring{background:rgba(167,139,250,.18);border:2px solid rgba(167,139,250,.7);box-shadow:0 0 30px rgba(167,139,250,.45),inset 0 0 16px rgba(167,139,250,.12)}
+.sk-t .fc-ring{background:rgba(251,191,36,.18);border:2px solid rgba(251,191,36,.7);box-shadow:0 0 30px rgba(251,191,36,.45),inset 0 0 16px rgba(251,191,36,.12)}
+.fc-ring::before{content:'';position:absolute;inset:-7px;border-radius:50%;border:1px dashed rgba(255,255,255,.06);animation:fcOrbit 7s linear infinite}
+@keyframes fcOrbit{to{transform:rotate(360deg)}}
+.fc-ring svg{width:22px;height:22px}
+.sk-l .fc-ring svg{color:var(--sky);filter:drop-shadow(0 0 14px #38bdf8) drop-shadow(0 0 4px #38bdf8)}
+.sk-b .fc-ring svg{color:var(--emerald);filter:drop-shadow(0 0 14px #34d399) drop-shadow(0 0 4px #34d399)}
+.sk-f .fc-ring svg{color:var(--violet);filter:drop-shadow(0 0 14px #a78bfa) drop-shadow(0 0 4px #a78bfa)}
+.sk-t .fc-ring svg{color:var(--amber);filter:drop-shadow(0 0 14px #fbbf24) drop-shadow(0 0 4px #fbbf24)}
+.fc-lbl{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase}
+.sk-l .fc-lbl{color:#7dd3fc;text-shadow:0 0 12px rgba(56,189,248,.6)}.sk-b .fc-lbl{color:#6ee7b7;text-shadow:0 0 12px rgba(52,211,153,.6)}
+.sk-f .fc-lbl{color:#c4b5fd;text-shadow:0 0 12px rgba(167,139,250,.6)}.sk-t .fc-lbl{color:#fde68a;text-shadow:0 0 12px rgba(251,191,36,.6)}
+.fc-badge{
+  position:absolute;top:11px;right:13px;
+  font-family:'JetBrains Mono',monospace;font-size:.52rem;font-weight:700;
+  padding:3px 9px;border-radius:50px;letter-spacing:.4px;
+}
+.sk-l .fc-badge{background:rgba(56,189,248,.1);color:var(--sky);border:1px solid rgba(56,189,248,.25)}
+.sk-b .fc-badge{background:rgba(52,211,153,.1);color:var(--emerald);border:1px solid rgba(52,211,153,.25)}
+.sk-f .fc-badge{background:rgba(167,139,250,.1);color:var(--violet);border:1px solid rgba(167,139,250,.25)}
+.sk-t .fc-badge{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25)}
+.fc-hint{font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--muted);letter-spacing:1.5px;display:flex;align-items:center;gap:4px}
+.fc-arrow{display:inline-block;animation:fcSpin 2.5s linear infinite}
+@keyframes fcSpin{to{transform:rotate(360deg)}}
+
+/* BACK — rotated 180deg so hidden by default, shown when parent flips */
+.skill-face-b{
+  transform:rotateY(180deg);
+  background:var(--card2);
+  border:1px solid rgba(99,179,237,.45);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:16px 16px;
+  gap:8px;
+  box-sizing:border-box;
+  position:absolute;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+}
+.skill-face-b::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:18px 18px 0 0}
+.sk-l .skill-face-b::after{background:var(--g1)}
+.sk-b .skill-face-b::after{background:var(--g3)}
+.sk-f .skill-face-b::after{background:var(--g2)}
+.sk-t .skill-face-b::after{background:var(--g4)}
+.skill-face-b::before{content:'';position:absolute;bottom:-18px;right:-18px;width:120px;height:120px;border-radius:50%;filter:blur(32px);opacity:.28}
+.sk-l .skill-face-b::before{background:var(--sky)}
+.sk-b .skill-face-b::before{background:var(--emerald)}
+.sk-f .skill-face-b::before{background:var(--violet)}
+.sk-t .skill-face-b::before{background:var(--amber)}
+
+.fb-hdr{display:flex;align-items:center;gap:8px}
+.fb-ttl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.sk-l .fb-ttl{color:var(--sky)}.sk-b .fb-ttl{color:var(--emerald)}
+.sk-f .fb-ttl{color:var(--violet)}.sk-t .fb-ttl{color:var(--amber)}
+.fb-ln{flex:1;height:1px;background:var(--b1)}
+
+.skill-tags{display:flex;flex-wrap:wrap;gap:6px}
+.stg{padding:5px 12px;border-radius:50px;font-size:.7rem;font-weight:600;cursor:default;transition:transform .2s,box-shadow .2s;letter-spacing:.2px}
+.stg:hover{transform:translateY(-2px)}
 .stg span{position:relative;z-index:1}
+.sk-l .stg{background:rgba(56,189,248,.12);color:var(--sky);border:1px solid rgba(56,189,248,.35)}
+.sk-l .stg:hover{background:rgba(56,189,248,.18);box-shadow:0 4px 12px rgba(56,189,248,.2)}
+.sk-b .stg{background:rgba(52,211,153,.12);color:var(--emerald);border:1px solid rgba(52,211,153,.35)}
+.sk-b .stg:hover{background:rgba(52,211,153,.18);box-shadow:0 4px 12px rgba(52,211,153,.2)}
+.sk-f .stg{background:rgba(167,139,250,.12);color:var(--violet);border:1px solid rgba(167,139,250,.35)}
+.sk-f .stg:hover{background:rgba(167,139,250,.18);box-shadow:0 4px 12px rgba(167,139,250,.2)}
+.sk-t .stg{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.35)}
+.sk-t .stg:hover{background:rgba(251,191,36,.18);box-shadow:0 4px 12px rgba(251,191,36,.2)}
 
 /* ═══ PROJECTS ═══ */
 .proj-hero{margin-bottom:24px}
@@ -1374,10 +1508,208 @@ body.light .ptag.pt-emerald{color:#059669;border-color:rgba(5,150,105,.3);backgr
 body.light .ptag.pt-violet{color:#7c3aed;border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.08)}
 body.light .ptag.pt-rose{color:#e11d48;border-color:rgba(225,29,72,.3);background:rgba(225,29,72,.08)}
 
+/* ── LIGHT THEME COMPREHENSIVE FIXES ─────────────────────────────── */
+
+/* Cursor — darker in light mode */
+body.light #cur-dot{background:#0f172a}
+body.light #cur-ring{border-color:rgba(15,23,42,.35)}
+body.light.hovering #cur-dot{background:#0284c7}
+body.light.hovering #cur-ring{border-color:rgba(2,132,199,.4)}
+body.light .spotlight{display:none} /* hide the glow spotlight in light mode */
+
+/* Cursor trail dots */
+body.light div[style*="mix-blend-mode:screen"]{mix-blend-mode:multiply!important;opacity:.25!important}
+
+/* Nav */
+body.light .nav-social{border-color:rgba(14,100,180,.2);color:#475569}
+body.light .nav-social:hover{border-color:#0284c7;color:#0284c7;background:rgba(2,132,199,.08)}
+body.light .nav-logo{color:#0f172a}
+body.light .nav-menu-btn{border-color:rgba(14,100,180,.2);color:#475569}
+
+/* Hero side social icons */
+body.light .hsi{border-color:rgba(14,100,180,.2);color:#475569;background:rgba(240,244,248,.9)}
+body.light .hsi:hover{border-color:#0284c7;color:#0284c7;background:rgba(2,132,199,.08)}
+
+/* Hero text */
+body.light .hero-name{color:#0f172a}
+body.light .hero-badge{color:#0284c7}
+body.light .badge-pulse{background:#059669;box-shadow:0 0 8px #059669}
+body.light .hstat-v{color:#0f172a}
+body.light .pc-avail .ad{background:#059669;box-shadow:0 0 8px #059669}
+
+/* Profile card */
+body.light .profile-card{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .pc-stats{background:rgba(14,100,180,.04);border-color:rgba(14,100,180,.12)}
+body.light .pc-stat{background:#f7f9fc}
+body.light .pc-sk{background:rgba(14,100,180,.05);border-color:rgba(14,100,180,.15);color:#475569}
+body.light .float-badge span{color:#0f172a}
+
+/* About section */
+body.light .eb-icon{color:#0284c7}
+body.light .eb-val{color:#0f172a}
+body.light .eb-lbl{color:#64748b}
+body.light .about-img-tag span{color:#0f172a}
+body.light .about-corner-label{color:#0f172a}
+
+/* Skill cards */
+body.light .skill-cat{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .skill-face-f{background:#fff}
+body.light .skill-face-b{background:#f7f9fc;border-color:rgba(14,100,180,.2)}
+body.light .skill-cat-title{color:#0f172a}
+body.light .fc-hint{color:#64748b}
+body.light .fb-ln{background:rgba(14,100,180,.12)}
+
+/* Projects */
+body.light .proj-featured{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .pf-title{color:#0f172a}
+body.light .pf-desc{color:#475569}
+body.light .pfm{color:#475569}
+body.light .pf-body{background:#fff}
+body.light .pc2{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .pc2-title{color:#0f172a}
+body.light .pc2-desc{color:#475569}
+body.light .pc2-date{color:#64748b}
+body.light .pc2-tags{color:#475569}
+body.light .pc2-footer{border-color:rgba(14,100,180,.1)}
+body.light .pc2-link{color:#475569}
+body.light .pc2-link:hover{color:#0284c7}
+body.light .pfl-s{color:#475569;border-color:rgba(14,100,180,.2)}
+
+/* Training */
+body.light .train-card{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .train-period{color:#0284c7}
+body.light .train-title{color:#0f172a}
+body.light .train-org{color:#475569}
+body.light .train-pts li{color:#334155}
+body.light .train-chip{background:rgba(14,100,180,.07);border-color:rgba(14,100,180,.2);color:#334155}
+
+/* Stats section */
+body.light .stat-card{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .sc-title{color:#0f172a}
+body.light .sc-desc{color:#475569}
+body.light .sc-sub{color:#64748b}
+body.light .sc-lbl{color:#64748b}
+body.light .sc-val{color:#0f172a}
+body.light .sc-badge{color:#334155;border-color:rgba(14,100,180,.2);background:rgba(14,100,180,.05)}
+body.light .sc-head{border-color:rgba(14,100,180,.1)}
+body.light .gh-footer2{color:#64748b}
+body.light .stat-link{color:#334155;border-color:rgba(14,100,180,.2);background:rgba(14,100,180,.03)}
+body.light .hrb-lbl{color:#334155}
+body.light .circ-lbl2{color:#334155}
+body.light .circ-num{color:#0f172a}
+body.light .circ-bg3{stroke:rgba(14,100,180,.12)}
+body.light .gh-nl{color:#64748b}
+body.light .gh-n{color:#0f172a}
+body.light .statsLastUpdated{color:#64748b}
+
+/* Certificates */
+body.light .cert-card{background:#fff;border-color:rgba(14,100,180,.15);color:#0f172a}
+body.light .cert-issuer2{color:#64748b}
+body.light .cert-name2{color:#0f172a}
+body.light .cert-date2{color:#64748b}
+body.light .cert-bdg{color:#334155;border-color:rgba(14,100,180,.2);background:rgba(14,100,180,.05)}
+body.light .cert-hint{color:#64748b}
+body.light .ccbtn{background:rgba(240,244,248,.9);color:#0f172a;border-color:rgba(14,100,180,.25)}
+body.light .ccd{background:rgba(14,100,180,.15)}
+body.light .ccd.on{background:#0284c7}
+
+/* Experience / Education */
+body.light .exp-c{background:linear-gradient(135deg,#fff,#f7f9fc)!important;border-color:rgba(14,100,180,.18)!important}
+body.light .exp-c:hover{box-shadow:0 20px 60px rgba(0,0,0,.1)!important}
+body.light .exp-ghost{color:rgba(15,23,42,.04)}
+body.light .exp-c:hover .exp-ghost{color:rgba(15,23,42,.07)}
+body.light .exp-tag{background:rgba(14,100,180,.08)!important;border-color:rgba(14,100,180,.2)!important;color:#0284c7!important}
+body.light #expSpine > div:first-child{background:linear-gradient(to bottom,transparent,rgba(2,132,199,.2) 8%,#0284c7 20%,#4f46e5 45%,#7c3aed 70%,#e11d48 88%,transparent)}
+
+/* Achievements */
+body.light .ach2{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .ach2-title{color:#0f172a}
+body.light .ach2-desc{color:#475569}
+body.light .ach2-num{color:rgba(14,100,180,.12)}
+body.light .ach2-meta{opacity:.85}
+
+/* Contact */
+body.light .contact-grid > div:first-child p{color:#475569}
+body.light .ct-tile{color:#0f172a}
+body.light .cform{background:#fff;border-color:rgba(14,100,180,.15)}
+body.light .cform-title{color:#0f172a}
+body.light .cform-sub{color:#64748b}
+body.light .clbl{color:#475569}
+body.light .cchar{color:#64748b}
+
+/* Back to top button */
+body.light #backTop{background:rgba(240,244,248,.95);border-color:rgba(14,100,180,.2);color:#0f172a}
+body.light #backTop:hover{border-color:#0284c7;color:#0284c7}
+
+/* Section labels / numbers */
+body.light .stag::before{background:linear-gradient(90deg,#0284c7,#4f46e5)}
+body.light .ghost{-webkit-text-stroke:1px rgba(15,23,42,.12)}
+
+/* Footer */
+body.light footer{background:var(--s1);border-top-color:rgba(14,100,180,.15)}
+body.light footer p{color:#64748b}
+body.light footer span[style*="color:var(--sky)"]{color:#0284c7!important}
+
+/* Scroll progress bar glow */
+body.light #sprog{box-shadow:0 0 10px rgba(2,132,199,.4)}
+
 
 /* ── Cert 3D carousel must always have smooth transform transition ── */
 .cert-3d{transition:transform .75s cubic-bezier(.25,.46,.45,.94)!important}
 .cert-item{transition:none!important}
+
+/* ── LIGHT MODE: override hardcoded inline colors in contact tiles & exp cards ── */
+
+/* Contact tile — main label text (near-white in dark, must be dark in light) */
+body.light .ct-tile > div[style*="flex:1"] > div:last-child {
+  color: #0f172a !important;
+  font-weight: 800;
+}
+/* Contact tile — colored sub-label (e.g. "EMAIL", "PHONE") stays vivid but darker */
+body.light .ct-tile > div[style*="flex:1"] > div:first-child {
+  opacity: 1 !important;
+}
+/* Contact tile — background: lighten it, add visible border */
+body.light .ct-tile {
+  background: #ffffff !important;
+  border-width: 1.5px !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,.06);
+}
+body.light .ct-tile:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,.12) !important;
+}
+/* Contact tile arrow border & bg on hover */
+body.light .ct-tile:hover .ct-arr {
+  background: rgba(0,0,0,.05) !important;
+  border-color: rgba(0,0,0,.15) !important;
+}
+
+/* Experience cards — all hardcoded near-white title text */
+body.light .exp-c div[style*="color:#f0f9ff"],
+body.light .exp-c div[style*="color:#fffbeb"],
+body.light .exp-c div[style*="color:#ecfdf5"] {
+  color: #0f172a !important;
+}
+/* Experience cards — date text (hardcoded accent colors, keep but bump opacity) */
+body.light .exp-c div[style*="letter-spacing:2.5px"] {
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+/* Experience card body background — fully opaque white */
+body.light .exp-c {
+  background: #ffffff !important;
+  border-color: rgba(14,100,180,.2) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,.07) !important;
+}
+/* Experience card description paragraphs */
+body.light .exp-c p[style] {
+  color: #334155 !important;
+}
+/* Spine bead — make it visible */
+body.light #expSpine div[style*="background:white"] {
+  background: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2,132,199,.3), 0 0 20px rgba(2,132,199,.4) !important;
+}
 </style>
 </head>
 <body>
@@ -1420,7 +1752,7 @@ body.light .ptag.pt-rose{color:#e11d48;border-color:rgba(225,29,72,.3);backgroun
       <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     </button>
-    <a href="mailto:jitendrakrgupta05936@gmail.com" class="nav-hire">Hire Me</a>
+    <a href="/cdn-cgi/l/email-protection#5d3734293833392f3c362f3a282d293c6d68646e6b1d3a303c3431733e3230" class="nav-hire">Hire Me</a>
     <button class="nav-menu-btn" id="menuBtn" onclick="toggleDrawer()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
@@ -1437,7 +1769,7 @@ body.light .ptag.pt-rose{color:#e11d48;border-color:rgba(225,29,72,.3);backgroun
   <a href="#certificates" class="nav-a" onclick="toggleDrawer()">Certs</a>
   <a href="#experience" class="nav-a" onclick="toggleDrawer()">Journey</a>
   <a href="#contact" class="nav-a" onclick="toggleDrawer()">Contact</a>
-  <a href="mailto:jitendrakrgupta05936@gmail.com" class="nav-hire" style="margin-top:12px;padding:12px 36px">Hire Me</a>
+  <a href="/cdn-cgi/l/email-protection#8be1e2ffeee5eff9eae0f9ecfefbffeabbbeb2b8bdcbece6eae2e7a5e8e4e6" class="nav-hire" style="margin-top:12px;padding:12px 36px">Hire Me</a>
 </div>
 
 <!-- SIDE SOCIAL -->
@@ -1454,7 +1786,7 @@ body.light .ptag.pt-rose{color:#e11d48;border-color:rgba(225,29,72,.3);backgroun
   <a href="https://www.hackerrank.com/profile/jitendrakrgupta1" target="_blank" rel="noopener" class="hsi" title="HackerRank">
     <svg viewBox="0 0 24 24" fill="currentColor" style="color:#00ea64"><path d="M12 0c1.285 0 9.75 4.886 10.392 6 .645 1.115.645 10.885 0 12S13.287 24 12 24C10.714 24 2.25 19.114 1.608 18 .963 16.886.963 7.114 1.608 6 2.25 4.886 10.715 0 12 0zm-.783 5.933L6.26 8.968v6.094l1.582.914v-2.702l.916.528v2.704l1.583.912V11.33l-2.498-1.444V8.421l4.079 2.35v7.236l1.499.866 5.16-2.985V9.79l-1.67-.963v5.786l-.912.527-2.497-1.443V7.46l-1.285-.742v5.877l-.914-.528V5.933z"/></svg>
   </a>
-  <a href="mailto:jitendrakrgupta05936@gmail.com" class="hsi" title="Email">
+  <a href="/cdn-cgi/l/email-protection#e983809d8c878d9b88829b8e9c999d88d9dcd0dadfa98e84888085c78a8684" class="hsi" title="Email">
     <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
   </a>
 </div>
@@ -1547,10 +1879,10 @@ body.light .ptag.pt-rose{color:#e11d48;border-color:rgba(225,29,72,.3);backgroun
         <div class="about-corner-br"></div>
       </div>
       <div class="exp-bars">
-        <div class="eb"><div class="eb-header"><span class="eb-name">React / Next.js</span><span class="eb-val">90%</span></div><div class="eb-track"><div class="eb-fill" data-w="90" style="background:linear-gradient(90deg,var(--sky),var(--indigo))"></div></div></div>
-        <div class="eb"><div class="eb-header"><span class="eb-name">Node / Express</span><span class="eb-val">85%</span></div><div class="eb-track"><div class="eb-fill" data-w="85" style="background:linear-gradient(90deg,var(--emerald),var(--sky))"></div></div></div>
-        <div class="eb"><div class="eb-header"><span class="eb-name">MongoDB / SQL</span><span class="eb-val">82%</span></div><div class="eb-track"><div class="eb-fill" data-w="82" style="background:linear-gradient(90deg,var(--violet),var(--indigo))"></div></div></div>
-        <div class="eb"><div class="eb-header"><span class="eb-name">C++ / DSA</span><span class="eb-val">88%</span></div><div class="eb-track"><div class="eb-fill" data-w="88" style="background:linear-gradient(90deg,var(--amber),var(--orange))"></div></div></div>
+        <div class="eb"><div class="eb-header"><span class="eb-name">React / Next.js</span><span class="eb-val">90%</span></div><div class="eb-track"><div class="eb-fill eb1" data-w="90"></div></div></div>
+        <div class="eb"><div class="eb-header"><span class="eb-name">Node / Express</span><span class="eb-val">85%</span></div><div class="eb-track"><div class="eb-fill eb2" data-w="85"></div></div></div>
+        <div class="eb"><div class="eb-header"><span class="eb-name">MongoDB / SQL</span><span class="eb-val">82%</span></div><div class="eb-track"><div class="eb-fill eb3" data-w="82"></div></div></div>
+        <div class="eb"><div class="eb-header"><span class="eb-name">C++ / DSA</span><span class="eb-val">88%</span></div><div class="eb-track"><div class="eb-fill eb4" data-w="88"></div></div></div>
       </div>
     </div>
     <div class="about-body rvr">
@@ -1566,23 +1898,117 @@ My interest in this field began with a curiosity about how <strong>websites and 
 What motivates me most is the opportunity to <strong>solve problems</strong> and continuously <strong>improve the way software is built</strong>. I enjoy analyzing challenges, thinking through <strong>logical solutions</strong>, and refining ideas until they become <strong>efficient and reliable</strong>. For me, development is a continuous process of <strong>learning, building, and improving</strong>.
 </p>
 <div class="skill-grid">
-        <div class="skill-cat">
-          <div class="skill-cat-title"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>Languages</div>
-          <div class="skill-tags"><span class="stg"><span>C++</span></span><span class="stg"><span>JavaScript</span></span><span class="stg"><span>Python</span></span><span class="stg"><span>Java</span></span><span class="stg"><span>C</span></span></div>
+
+  <!-- Languages -->
+  <div class="skill-cat sk-l rv" style="transition-delay:0s">
+    <div class="skill-cat-inner">
+      <div class="skill-face skill-face-f">
+        <span class="fc-badge">5 langs</span>
+        <div class="fc-ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         </div>
-        <div class="skill-cat">
-          <div class="skill-cat-title"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"/><path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"/><path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"/></svg>Backend</div>
-          <div class="skill-tags"><span class="stg"><span>Node.js</span></span><span class="stg"><span>Express.js</span></span><span class="stg"><span>MongoDB</span></span><span class="stg"><span>MySQL</span></span><span class="stg"><span>JWT</span></span><span class="stg"><span>Socket.IO</span></span></div>
-        </div>
-        <div class="skill-cat">
-          <div class="skill-cat-title"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>Frontend</div>
-          <div class="skill-tags"><span class="stg"><span>React.js</span></span><span class="stg"><span>Tailwind</span></span><span class="stg"><span>HTML/CSS</span></span><span class="stg"><span>Mongoose</span></span></div>
-        </div>
-        <div class="skill-cat">
-          <div class="skill-cat-title"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>Tools</div>
-          <div class="skill-tags"><span class="stg"><span>Git</span></span><span class="stg"><span>GitHub</span></span><span class="stg"><span>VS Code</span></span><span class="stg"><span>Postman</span></span></div>
+        <div class="fc-lbl">Languages</div>
+        <div class="fc-hint"><span class="fc-arrow">↻</span> hover to flip</div>
+      </div>
+      <div class="skill-face skill-face-b">
+        <div class="fb-hdr"><span class="fb-ttl">Languages</span><div class="fb-ln"></div></div>
+        <div class="skill-tags">
+          <span class="stg"><span>C++</span></span>
+          <span class="stg"><span>JavaScript</span></span>
+          <span class="stg"><span>Python</span></span>
+          <span class="stg"><span>Java</span></span>
+          <span class="stg"><span>C</span></span>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Backend -->
+  <div class="skill-cat sk-b rv" style="transition-delay:.12s">
+    <div class="skill-cat-inner">
+      <div class="skill-face skill-face-f">
+        <span class="fc-badge">6 techs</span>
+        <div class="fc-ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Database cylinders -->
+  <ellipse cx="12" cy="5" rx="8" ry="2.5"/>
+  <path d="M4 5v5c0 1.38 3.58 2.5 8 2.5s8-1.12 8-2.5V5"/>
+  <path d="M4 10v5c0 1.38 3.58 2.5 8 2.5s8-1.12 8-2.5v-5"/>
+  <!-- Signal dot -->
+  <circle cx="12" cy="19.5" r="1" fill="currentColor" stroke="none"/>
+</svg>
+        </div>
+        <div class="fc-lbl">Backend</div>
+        <div class="fc-hint"><span class="fc-arrow">↻</span> hover to flip</div>
+      </div>
+      <div class="skill-face skill-face-b">
+        <div class="fb-hdr"><span class="fb-ttl">Backend</span><div class="fb-ln"></div></div>
+        <div class="skill-tags">
+          <span class="stg"><span>Node.js</span></span>
+          <span class="stg"><span>Express.js</span></span>
+          <span class="stg"><span>MongoDB</span></span>
+          <span class="stg"><span>MySQL</span></span>
+          <span class="stg"><span>JWT</span></span>
+          <span class="stg"><span>Socket.IO</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frontend -->
+  <div class="skill-cat sk-f rv" style="transition-delay:.24s">
+    <div class="skill-cat-inner">
+      <div class="skill-face skill-face-f">
+        <span class="fc-badge">4 techs</span>
+        <div class="fc-ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- React-style atom orbits -->
+  <ellipse cx="12" cy="12" rx="10" ry="4"/>
+  <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+  <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+  <!-- Nucleus -->
+  <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+</svg>
+        </div>
+        <div class="fc-lbl">Frontend</div>
+        <div class="fc-hint"><span class="fc-arrow">↻</span> hover to flip</div>
+      </div>
+      <div class="skill-face skill-face-b">
+        <div class="fb-hdr"><span class="fb-ttl">Frontend</span><div class="fb-ln"></div></div>
+        <div class="skill-tags">
+          <span class="stg"><span>React.js</span></span>
+          <span class="stg"><span>Tailwind</span></span>
+          <span class="stg"><span>HTML/CSS</span></span>
+          <span class="stg"><span>Mongoose</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools -->
+  <div class="skill-cat sk-t rv" style="transition-delay:.36s">
+    <div class="skill-cat-inner">
+      <div class="skill-face skill-face-f">
+        <span class="fc-badge">4 tools</span>
+        <div class="fc-ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="fc-lbl">Tools</div>
+        <div class="fc-hint"><span class="fc-arrow">↻</span> hover to flip</div>
+      </div>
+      <div class="skill-face skill-face-b">
+        <div class="fb-hdr"><span class="fb-ttl">Tools</span><div class="fb-ln"></div></div>
+        <div class="skill-tags">
+          <span class="stg"><span>Git</span></span>
+          <span class="stg"><span>GitHub</span></span>
+          <span class="stg"><span>VS Code</span></span>
+          <span class="stg"><span>Postman</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
     </div>
   </div>
 </section>
@@ -1728,8 +2154,8 @@ What motivates me most is the opportunity to <strong>solve problems</strong> and
   <div class="container">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:44px">
     <div>
-      <div class="stag" style="margin-bottom:12px">// 04</div>
-      <div class="stitle" style="margin-bottom:0">Coding <span class="ghost">Stats</span></div>
+      <div class="stag rv" style="margin-bottom:12px">// 04</div>
+      <div class="stitle rv" style="margin-bottom:0">Coding <span class="ghost">Stats</span></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <span id="statsLastUpdated" style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted)">Fetching live data…</span>
@@ -2054,17 +2480,20 @@ What motivates me most is the opportunity to <strong>solve problems</strong> and
     }
   </style>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     function expHover(el, on){
       const c = el.dataset.color;
+      const isLight = document.body.classList.contains('light');
       if(on){
-        el.style.borderColor = 'rgba('+c+',.55)';
+        el.style.borderColor = 'rgba('+c+(isLight ? ',.6)' : ',.55)');
         el.style.transform = el.closest('.exp-row').children[0] === el.parentElement
           ? 'translateX(-10px) scale(1.015)'
           : 'translateX(10px) scale(1.015)';
-        el.style.boxShadow = '0 0 0 1px rgba('+c+',.12),0 28px 70px rgba('+c+',.22)';
+        el.style.boxShadow = isLight
+          ? '0 0 0 1px rgba('+c+',.15),0 28px 70px rgba('+c+',.18)'
+          : '0 0 0 1px rgba('+c+',.12),0 28px 70px rgba('+c+',.22)';
       } else {
-        el.style.borderColor = 'rgba('+c+',.18)';
+        el.style.borderColor = isLight ? 'rgba('+c+',.3)' : 'rgba('+c+',.18)';
         el.style.transform = '';
         el.style.boxShadow = '';
       }
@@ -2118,7 +2547,7 @@ What motivates me most is the opportunity to <strong>solve problems</strong> and
       <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:28px">
 
         <!-- Email -->
-        <a href="mailto:jitendrakrgupta05936@gmail.com" class="ct-tile" data-c1="#0ea5e9" data-c2="#38bdf8" style="display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:20px;text-decoration:none;cursor:none;position:relative;overflow:hidden;border:1px solid rgba(56,189,248,.2);background:linear-gradient(135deg,rgba(14,165,233,.08) 0%,rgba(56,189,248,.04) 100%);transition:all .4s cubic-bezier(.4,0,.2,1)">
+        <a href="/cdn-cgi/l/email-protection#076d6e7362696375666c75607277736637323e343147606a666e6b2964686a" class="ct-tile" data-c1="#0ea5e9" data-c2="#38bdf8" style="display:flex;align-items:center;gap:18px;padding:18px 22px;border-radius:20px;text-decoration:none;cursor:none;position:relative;overflow:hidden;border:1px solid rgba(56,189,248,.2);background:linear-gradient(135deg,rgba(14,165,233,.08) 0%,rgba(56,189,248,.04) 100%);transition:all .4s cubic-bezier(.4,0,.2,1)">
           <!-- left glow blob -->
           <div class="ct-blob" style="position:absolute;left:-30px;top:50%;transform:translateY(-50%);width:100px;height:100px;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,.25),transparent 70%);pointer-events:none;transition:opacity .4s;opacity:0"></div>
           <!-- shimmer sweep -->
@@ -2191,30 +2620,33 @@ What motivates me most is the opportunity to <strong>solve problems</strong> and
 
       </div>
 
-      <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+      <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 document.querySelectorAll('.ct-tile').forEach(tile => {
   const blob  = tile.querySelector('.ct-blob');
   const sweep = tile.querySelector('.ct-sweep');
   const arr   = tile.querySelector('.ct-arr');
 
   tile.addEventListener('mouseenter', () => {
-    tile.style.transform     = 'translateY(-3px) scale(1.015)';
-    tile.style.boxShadow     = '0 20px 50px rgba(0,0,0,.3)';
-    blob.style.opacity       = '1';
+    const isLight = document.body.classList.contains('light');
+    tile.style.transform  = 'translateY(-3px) scale(1.015)';
+    tile.style.boxShadow  = isLight
+      ? '0 16px 40px rgba(0,0,0,.12)'
+      : '0 20px 50px rgba(0,0,0,.3)';
+    blob.style.opacity    = '1';
     sweep.style.backgroundPosition = '-200% 0';
-    arr.style.transform      = 'translateX(4px)';
-    arr.style.background     = 'rgba(255,255,255,.1)';
-    arr.style.borderColor    = 'rgba(255,255,255,.3)';
+    arr.style.transform   = 'translateX(4px)';
+    arr.style.background  = isLight ? 'rgba(0,0,0,.05)' : 'rgba(255,255,255,.1)';
+    arr.style.borderColor = isLight ? 'rgba(0,0,0,.15)' : 'rgba(255,255,255,.3)';
   });
 
   tile.addEventListener('mouseleave', () => {
-    tile.style.transform     = '';
-    tile.style.boxShadow     = '';
-    blob.style.opacity       = '0';
+    tile.style.transform  = '';
+    tile.style.boxShadow  = '';
+    blob.style.opacity    = '0';
     sweep.style.backgroundPosition = '200% 0';
-    arr.style.transform      = '';
-    arr.style.background     = '';
-    arr.style.borderColor    = '';
+    arr.style.transform   = '';
+    arr.style.background  = '';
+    arr.style.borderColor = '';
   });
 });
 </script>
@@ -2330,9 +2762,36 @@ const rEl=document.getElementById('roleText');
 function typeRole(){const w=roles[ri];if(!rd){rEl.textContent=w.slice(0,++rc);if(rc===w.length){rd=true;setTimeout(typeRole,1900);return}}else{rEl.textContent=w.slice(0,--rc);if(rc===0){rd=false;ri=(ri+1)%roles.length}}setTimeout(typeRole,rd?38:72);}
 setTimeout(typeRole,2600);
 
-/* ═══ SCROLL REVEAL ═══ */
-const rvObs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('on'),i*70)})},{threshold:.07});
-document.querySelectorAll('.rv,.rvl,.rvr,.rvs').forEach(e=>rvObs.observe(e));
+/* ═══ SCROLL REVEAL — section-wise ═══ */
+(function initReveal(){
+  // Tag every major section and the marquee band as reveal targets
+  const targets = document.querySelectorAll(
+    'section, .marquee, footer'
+  );
+  targets.forEach(el => {
+    // Hero is above the fold, footer is tiny — skip both
+    if (el.id === 'hero' || el.tagName === 'FOOTER') return;
+    el.classList.add('sec-rv');
+    el.style.willChange = 'opacity, transform';
+  });
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('on');
+      setTimeout(() => { e.target.style.willChange = 'auto'; }, 1100);
+      obs.unobserve(e.target);
+    });
+  }, {
+    threshold: 0.06,
+    rootMargin: '0px 0px -32px 0px'
+  });
+
+  targets.forEach(el => {
+    if (el.id === 'hero' || el.tagName === 'FOOTER') return;
+    obs.observe(el);
+  });
+})();
 
 /* ═══ COUNTERS ═══ */
 function animN(el,t,dur=1400,dec=0){let s=null;const fn=ts=>{if(!s)s=ts;const p=Math.min((ts-s)/dur,1);el.textContent=(p*t).toFixed(dec);if(p<1)requestAnimationFrame(fn)};requestAnimationFrame(fn);}
@@ -2349,11 +2808,25 @@ new IntersectionObserver(entries=>{
 },{threshold:.5}).observe(document.querySelector('.hero-stats'));
 
 /* ═══ EXP BARS ═══ */
-new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting){
-    document.querySelectorAll('.eb-fill').forEach(b=>setTimeout(()=>{b.style.width=b.dataset.w+'%'},300));
+(function(){
+  var expBars = document.querySelector('.exp-bars');
+  if(!expBars) return;
+  var fills = expBars.querySelectorAll('.eb-fill');
+
+  function runBars(){
+    fills.forEach(function(b){
+      // Remove run class, force reflow, re-add — guarantees animation restarts
+      b.classList.remove('run');
+      b.style.setProperty('--tw', (b.getAttribute('data-w') || 0) + '%');
+      void b.offsetWidth; // force reflow
+      b.classList.add('run');
+    });
   }
-},{threshold:.3}).observe(document.querySelector('.exp-bars')||document.body);
+
+  new IntersectionObserver(function(entries){
+    if(entries[0].isIntersecting) runBars();
+  }, {threshold: 0.15}).observe(expBars);
+})();
 
 /* ═══ CIRC ANIMATION ═══ */
 function animCirc(id,pct,dur=1800){
@@ -2480,13 +2953,44 @@ document.addEventListener('visibilitychange',()=>document.hidden?stopPoll():star
 
 /* ── Trigger on scroll into view ─────────────────────── */
 new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting && !statsLoaded){
-    statsLoaded=true;
-    btnSpin(true); setLive('fetching');
-    Promise.allSettled([fetchLC(), fetchGH()]).then(()=>{ btnSpin(false); setLive('live'); });
-    animateHR();
-    buildRealHeatmap();
-    startPoll();
+  if(entries[0].isIntersecting){
+    // Reset all circles to 0 before animating
+    document.querySelectorAll('.circ-fg3').forEach(function(c){
+      c.style.transition = 'none';
+      c.style.strokeDashoffset = '252';
+    });
+    // Reset HR bars
+    document.querySelectorAll('.hrb-bar').forEach(function(b){
+      b.style.transition = 'none';
+      b.style.height = '4px';
+    });
+
+    if(!statsLoaded){
+      statsLoaded=true;
+      btnSpin(true); setLive('fetching');
+      Promise.allSettled([fetchLC(), fetchGH()]).then(()=>{ btnSpin(false); setLive('live'); });
+      buildRealHeatmap();
+      startPoll();
+    }
+    // Always re-run the visual animations every time section comes into view
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        animateHR();
+        // Re-animate LeetCode circles if already loaded
+        if(statsLoaded && document.getElementById('lcEv')){
+          var easy = parseInt(document.getElementById('lcEv').textContent)||0;
+          var med  = parseInt(document.getElementById('lcMv').textContent)||0;
+          var hard = parseInt(document.getElementById('lcHv').textContent)||0;
+          var total= parseInt(document.getElementById('lcTv').textContent)||0;
+          if(total > 0){
+            animCirc('lcE', easy/600*100);
+            animCirc('lcM', med/400*100);
+            animCirc('lcH', hard/150*100);
+            animCirc('lcT', total/700*100);
+          }
+        }
+      });
+    });
   }
 },{threshold:.05}).observe(document.getElementById('stats'));
 
@@ -2801,8 +3305,13 @@ function applyGH(d, animate){
    HACKERRANK — animate static bars (no public API)
 ══════════════════════════════════════════════════════ */
 function animateHR(){
-  setTimeout(()=>{
-    document.querySelectorAll('.hrb-bar').forEach(b=>{
+  // Reset circles
+  ['hrC1','hrC2','hrC3'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.style.transition='none'; el.style.strokeDashoffset='252'; }
+  });
+  setTimeout(function(){
+    document.querySelectorAll('.hrb-bar').forEach(function(b){
       b.style.transition='height .7s cubic-bezier(.4,0,.2,1)';
       b.style.height=b.dataset.h+'px';
     });
@@ -3447,16 +3956,16 @@ function toggleTheme(){
   // update particle canvas opacity
   const pc = document.getElementById('particleCanvas');
   if(pc) pc.style.opacity = isLight ? '.25' : '.4';
-  // update cursor ring color
+  // Clear inline cursor styles so CSS light-theme rules take full control
+  const dot  = document.getElementById('cur-dot');
   const ring = document.getElementById('cur-ring');
-  if(ring) ring.style.borderColor = isLight
-    ? 'rgba(2,132,199,.35)'
-    : 'rgba(56,189,248,.35)';
+  if(dot)  dot.style.background   = '';
+  if(ring) ring.style.borderColor = '';
   // update progress bar glow
   const prog = document.getElementById('sprog');
   if(prog) prog.style.boxShadow = isLight
-    ? '0 0 12px rgba(2,132,199,.5)'
-    : '0 0 12px rgba(56,189,248,.6)';
+    ? '0 0 10px rgba(2,132,199,.4)'
+    : '0 0 10px rgba(56,189,248,.5)';
 }
 // Restore saved theme on load
 (function(){
@@ -3465,7 +3974,25 @@ function toggleTheme(){
     document.body.classList.add('light');
     const pc = document.getElementById('particleCanvas');
     if(pc) pc.style.opacity = '.25';
+    // Clear any inline cursor styles so CSS handles them
+    const dot  = document.getElementById('cur-dot');
+    const ring = document.getElementById('cur-ring');
+    if(dot)  dot.style.background   = '';
+    if(ring) ring.style.borderColor = '';
   }
+})();
+
+// ── SKILL CARD FLIP ───────────────────────────────────────────────────────────
+(function(){
+  document.querySelectorAll('.skill-cat').forEach(function(card){
+    var inner = card.querySelector('.skill-cat-inner');
+    card.addEventListener('mouseenter', function(){
+      inner.style.transform = 'rotateY(180deg)';
+    });
+    card.addEventListener('mouseleave', function(){
+      inner.style.transform = 'rotateY(0deg)';
+    });
+  });
 })();
 </script>
 
